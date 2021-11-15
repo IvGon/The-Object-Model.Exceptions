@@ -6,7 +6,7 @@
 Порядок создания новых объектов:
 1. Добавить в справочник новые станции - station+/station-.
 2. Создать новый маршрут - route+/route-.
-3. Формирование маршрута - добавить/удалить станцию - st add/st del/st show/st clear.
+3. Формирование маршрута - в маршрут добавить/удалить станцию - st add/st del/st show/st clear.
 3. Создать поезд - train.
 4. Формирование состава: создать вагон и добавить в состав поезда - "car"/ "car+".
                           удалить вагон из состава - "car-".
@@ -20,23 +20,26 @@
 =end 
 
 require_relative 'instance_counter'
-require_relative 'class_station'
-require_relative 'class_route'
+require_relative 'station'
+require_relative 'route'
 require_relative 'manufacturer'
 require_relative 'wagon'
-require_relative 'class_train'
+require_relative 'passenger_wagon'
+require_relative 'cargo_wagon'
+require_relative 'train'
+require_relative 'passenger_train'
+require_relative 'cargo_train'
 require_relative 'interface.rb'
 
 
 #********** main ******** main ****** main ******  main *********  main **************
 
-#---------------------------- Формирование контрольной конфигурации -----------------------------------
-#spr_station = []                                            # Справочник станций
 spr_station = Station.all                                    # Справочник станций
 spr_route = Route.all                                        # Справочник маршрутов
 spr_train = Train.all                                        # Справочник поездов
 park_wagon = Wagon.all                                       # Подвижной состав
 
+=begin
 name_station =  ["Харьков","Белгород","Курск","Орел","Тула","Москва"]
 name_station1 = ["Харьков","Лозовая","Запорожье","Синельниково","Новоалексеевка","Симферополь"]
 number_train =  ["19", "20", "81", "82","67", "68"]
@@ -139,7 +142,7 @@ park_wagon.each do |wagon|
         "#{(wagon.subtype_wagon.ljust 10)} #{(wagon.location.ljust 15)}\n"
 end
 puts
-
+=end
 #---------------------------- Интерфейс -----------------------------------------------------------
 interface = Interface.new
 interface.menu(spr_station,spr_route,spr_train,park_wagon)

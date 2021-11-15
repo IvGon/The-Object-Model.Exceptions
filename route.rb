@@ -14,7 +14,7 @@ class Route
   #require 'instance_counter'
   include InstanceCounter
 
-  attr_reader :route_name
+  attr_reader :name
   attr_accessor :station
 
   @@list_routes = []
@@ -22,7 +22,7 @@ class Route
 # ------------------------------------- Создать маршрут ---------------------------------------------
 
   def initialize(cod_route,begin_station, end_station)                      #------ Создать маршрут
-    @route_name = cod_route.to_s + ":" + begin_station + "-" + end_station  #------ Название маршрута
+    @name = cod_route.to_s + ":" + begin_station + "-" + end_station  #------ Название маршрута
     @station = [begin_station, end_station]        
     register_instance           
     @@list_routes.push(self)
@@ -70,7 +70,7 @@ class Route
 
   # ------------------------------- показать станции в маршруте -----------------------------------
 
-  def route_stations				                                  
+  def show_stations				                                  
     puts "***** Схема маршрута: ************"
     print "<- "
     @station.each { |name_st| print "#{name_st} - " }
@@ -80,7 +80,7 @@ class Route
   # ------------------------------- информация о маршруте ------------------------------------ 
 
   def info
-    puts "Название маршрута   - #{@route_name}"               # название маршрута
+    puts "Название маршрута   - #{@name}"               # название маршрута
     puts "Количество станций  - #{@station.size}"             # число станций в маршруте  
     puts "Начальная станция   - #{@station[0]}"               # начальная станция
     puts "Конечная станция    - #{@station[-1]}"              # конечная станция

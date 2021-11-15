@@ -15,21 +15,21 @@ class Station
   #require 'instance_counter'
   include InstanceCounter
 
-  @@list_stations = []
+  @@stations = []
 
-  attr_reader :name_station           # <----------------------------- Название станции
+  attr_reader :name                   # <----------------------------- Название станции
   attr_accessor :trains               # <----------------------------- Список поездов на станции
 
 #------------------------------------ список Obj станций ------------------------------------------------
   def self.all
-    @@list_stations
+    @@stations
   end 
 
 # --------------------------------- # Cоздать станцию ----------------------------------------------------
   def initialize(name_station)                                    
-    @name_station = name_station
+    @name = name_station
     @trains = []
-    @@list_stations.push(self)
+    @@stations.push(self)
     register_instance
   end
   
@@ -51,15 +51,15 @@ class Station
 
 # --------------------------------------------- поиск Obj станции по названию ----------------
   def find_obj(name)
-    @@list_stations.find{|station| station.name_station == name}
+    @@stations.find{|station| station.name == name}
   end  
   
 # ---------------------------------- показать список поездов на станции ------------------------------------
   def list_of_trains(type)                                              
     num = 0
     trains.each do |train| 
-      if train.train_type == type 
-        puts "#{train.train_number}, #{train.train_type}" 
+      if train.type == type 
+        puts "#{train.number}, #{train.type}" 
         num +=1
       end
     end

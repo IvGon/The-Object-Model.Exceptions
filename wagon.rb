@@ -3,7 +3,6 @@
 Класс Wagon (Вагон):
     Имеет номер - reg_number, тип  type_wagon (грузовой, пассажирский). 
     эти данные указываются при создании экземпляра класса.
-    Вид вагона - subtype_wagon определяется в зависимости о типа вагона.
     
     Вагоны теперь делятся на грузовые и пассажирские (отдельные классы). 
     К пассажирскому поезду можно прицепить только пассажирские, к грузовому - грузовые. 
@@ -42,7 +41,7 @@ class Wagon
 
   # ------------------ Прицепить к поезду ---------------------------------------------------------
   def attach_wagon_to_train(train)
-    @location = train.train_number if train.wagons.include?(self)
+    @location = train.number if train.wagons.include?(self)
   end
 
   # ------------------ Отцепить вагон от поезда ----------------------------------------------------
@@ -69,94 +68,4 @@ class Wagon
       self.type_wagon = initial_type
     end
 
-end
-
-
-# -------------------------- Класс PassengerWagon (пассажирский вагон )---------------------------
-
-class PassengerWagon < Wagon
-  
-  attr_reader :reg_number, :type_wagon, :subtype_wagon #, :location
-
-  def initialize(reg_number,type_wagon="пассажирский")
-    super(reg_number,"пассажирский")
-  end
- 
-  # ------------------------------  Назначить вид вагона -----------------------------------------
-  def as_subtype_wagon(type)                          
-    set_subtype_wagon(type) if subtype_wagon.nil?
-  end
-
-# ------------------------------ Ввести с консоли вид вагона --------------------------------------
-  def subtype_wagon?                                  
-    set_subtype_wagon("??") 
-  end
-
-=begin --------------------------------------------------------------------------------------------
-  
-  К методам privete отнесены методы определения вида вагона в зависимости от типа вагона.
-
-=end 
-
-  private
-
-    attr_writer :subtype_wagon
-
-    def set_subtype_wagon(type)
-
-      wagon_subtype = {"СВ" => "мягкий", "КП" => "купе", "ПЛ" => "плацкарт", "РС" => "ресторан", "ПБ" => "почтовый"}
-
-      if wagon_subtype.keys.include?(type)
-        self.subtype_wagon = wagon_subtype[type]
-      else
-        print "Вид вагона (СВ - 0, КП - 1, ПЛ - 2,  РС - 3, ПБ - 4): "
-        num = gets.chomp.to_i
-        self.subtype_wagon = wagon_subtype.values[num]
-      end
-
-    end
-end
-
-# -------------------------- Класс CargoWagon (грузовой вагон )---------------------------------
-
-class CargoWagon  < Wagon
-
-  attr_reader :reg_number, :type_wagon, :subtype_wagon
-  
-  def initialize(reg_number,type_wagon="грузовой")
-    #@reg_number=reg_number
-    #@type_wagon="грузовой"
-    super(reg_number,"грузовой")
-  end
-
-  def as_subtype_wagon(type)
-    set_subtype_wagon(type) if subtype_wagon.nil?
-  end
-
-  def subtype_wagon?
-    set_subtype_wagon("??") 
-  end
-
-=begin --------------------------------------------------------------------------------------------
-  
-  К методам privete отнесены методы определения вида вагона в зависимости от типа вагона.
-
-=end 
-
-  private
-
-    attr_writer :subtype_wagon
-
-    def set_subtype_wagon(type)
-
-      wagon_subtype = {"КВ" => "крытый", "ПЛ" => "платформа", "ПВ"  => "полувагон", "ЦС" => "цистерна", "ТС" => "рефрижератор"}
-
-      if wagon_subtype.keys.include?(type)
-        self.subtype_wagon = wagon_subtype[type]
-      else
-        print "Вид вагона (КВ - 0, ПЛ - 1, ПВ - 2,  ЦС - 3, ТС - 4): "
-        num = gets.chomp.to_i
-        self.subtype_wagon = wagon_subtype.values[num]
-      end
-    end
 end

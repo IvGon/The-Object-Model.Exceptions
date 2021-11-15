@@ -25,7 +25,7 @@ class Train
   include Manufacturer
   include InstanceCounter
 
-  attr_reader :train_number, :train_type
+  attr_reader :number, :type
   attr_reader :route_name, :route               # название и Obj маршрута поезда
   attr_accessor :speed, :curent_station         # возвращать текущую станцию и скорость
   
@@ -43,9 +43,9 @@ class Train
 
   def initialize(number, type, num_of_cars)
 
-    @train_number = number			                # номер поезда
-    @train_type = type				                  # тип поезда (грузовой, пассажирский)
-    @wagons = []
+    @number = number			                      # номер поезда
+    @type = type				                        # тип поезда (грузовой, пассажирский)
+    @wagons = []                                # состав поезда
     @num_of_cars = num_of_cars		              # количество вагонов 
     @speed = 0
     @curent_station = "Харьков"
@@ -56,7 +56,6 @@ class Train
   # --------------------------------------------- количество вагонов в поезде ----------------
   def number_cars                     			     
     @num_of_cars = wagons.size
-    #puts "В поезде № #{@train_number} - #{@num_of_cars} вагон"
   end
  
  # --------------------------------------------- поиск Obj поезда по номеру ----------------
@@ -72,7 +71,9 @@ class Train
     @prev_station = nil
     @next_station = assign_route.station[1]
     @condition   = @curent_station
-    #assign_route.station[0].train_arrival(self)
+    Station.all.find { |item| item.name == route.station[0]}.train_arrival(self)
+    #st_obj = Station.all.find { |item| item.name == route.station[0] }
+    #st_obj.train_arrival(self)
   end
   
   def route_name
@@ -128,9 +129,9 @@ class Train
 
   # --------------------------------------- отправить поезд со станции по маршруту ----------
   def leave_the_station(station)                       		         
-    @prev_station = station.name_station  if station.trains.include?(self)
+    @prev_station = station.name  if station.trains.include?(self)
     @curent_station = ""
-    i = self.route.station.index(station.name_station ).to_i
+    i = self.route.station.index(station.name ).to_i
     @next_station = self.route.station[i + 1]
     speed=60
   end
@@ -139,7 +140,7 @@ class Train
   def arrive_at_the_station(station)			                        
     
     speed=0
-    @curent_station = station.name_station if station.trains.include?(self)
+    @curent_station = station.name if station.trains.include?(self)
     @next_station = ""
   end
 
@@ -158,14 +159,14 @@ class Train
 
   def info
     condition
-    puts "номер поезда        - #{@train_number}"	      # номер поезда
+    puts "номер поезда        - #{@number}"	            # номер поезда
     puts "Obj поезда          - #{self}"                # номер поезда
-    puts "тип поезда          - #{@train_type}"         # тип поезда
+    puts "тип поезда          - #{@type}"               # тип поезда
     puts "количество вагонов  - #{@num_of_cars}"        # число вагонов в поезде		
     puts "скорость            - #{@speed}"              # скорость поезда
     if @route.nil? == false
       puts "Obj маршрута        - #{@route}"              # Obj маршрута
-      puts "название маршрута   - #{@route.route_name}"   # название маршрута
+      puts "название маршрута   - #{@route.name}"         # название маршрута
       puts "маршрут             - #{@route.station}"      # список станций по маршруту
     end
     puts "Местонахождение     - #{@condition}"          # местонахождение поезда
@@ -175,7 +176,6 @@ class Train
     puts "Состав поезда       - "                       # подвижной состав поезда
     wagons.each_with_index { |wagon,i|  print "#{(i+1).to_s.rjust 5}  #{(wagon.reg_number.ljust 7)}  "\
                                               "#{(wagon.type_wagon.ljust 14)} "\
-                                              "#{(wagon.subtype_wagon.ljust 10)} "\
                                               "#{(wagon.location.center 15)}\n" }
   end
 
@@ -183,7 +183,7 @@ class Train
 
   def add_car(car)                          #car+  - прицепить вагон к поезду
     if speed == 0 
-      if (car.type_wagon == @train_type)
+      if (car.type_wagon == @type)
         @num_of_cars += 1
         wagons << car
       else
@@ -204,26 +204,4 @@ class Train
       puts "нет такого вагона #{car.reg_number} в поезде!"   
     end
   end
-end
-
-
-# ----------------------------------------- класс пассажирский поезд -----------------------
-
-class  PassengerTrain < Train 
-  
-  def initialize(number, num_of_cars)
-  
-      super(number, type="пассажирский", num_of_cars)
-  end
-end
-
-
-# ----------------------------------------- класс грузовой поезд ----------------------------
-
-class CargoTrain < Train
-  
-  def initialize(number, type, num_of_cars)
-
-    super(number, type="грузовой", num_of_cars)
-  end 
 end

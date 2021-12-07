@@ -2,7 +2,7 @@
 
 class CargoTrain < Train
   
-  def initialize(number, type, num_of_cars)
+  def initialize(number, num_of_cars)
 
     super(number, type="грузовой", num_of_cars)
   end 

@@ -25,7 +25,7 @@ class Train
   require_relative 'instance_counter'
   require_relative 'validate'
   include Validation
-  include Validate
+  #include Validate
   include Manufacturer
   include InstanceCounter
 
@@ -47,7 +47,7 @@ class Train
   end
 
   def initialize(number, type, num_of_cars)
-      validate!(number)
+      #validate!(number)
 
       @number = number			                      # номер поезда
       @type = type				                        # тип поезда (грузовой, пассажирский)
@@ -203,11 +203,14 @@ class Train
       if (car.type_wagon == @type)
         @num_of_cars += 1
         wagons << car
+        return true
       else
-        puts "тип вагона не соответствует типу поезда!"  
+        puts "тип вагона не соответствует типу поезда!" 
+        return false
       end
     else
       puts "Остановите поезд!"
+      return false
     end   
   end
 
@@ -223,7 +226,7 @@ class Train
   end
 
   def validate!(number)
-    raise RuntimeError, "Неверный формат номера поезда: #{number} !" if number !~ NUMBER_FORMAT    
+    raise ArgumentError, "Неверный формат номера поезда: #{number} !" if number !~ NUMBER_FORMAT    
   end
 end
 
@@ -268,9 +271,19 @@ class PassengerTrainValidator < TrainValidator
 end
 
 class CargoTrainValidator < TrainValidator
-  def initialize
-    super
-  end
+  
+  validates :number, type: String 
+  validates :number,
+            msg: 'Неверный формат номера!',
+            option: proc { |p| p.number =~ /^\d{3}-?[а-яА-Я]{2}$/i }
+  validates :type, type: String
+  validates :type, 
+            msg: 'Неверный тип поезда!',
+            option: proc { |p| ["пассажирский","грузовой"].include? p.type }
+  validates :num_of_cars, type: Integer
+  validates :num_of_cars,
+            msg: 'Количество вагонов не может быть меньше 1!',
+            option: proc { |p|  p.num_of_cars > 0 }
 end
 
 #tr=Train.new("123-Пс","пассажирский",12)

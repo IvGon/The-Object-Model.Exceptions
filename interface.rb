@@ -5,6 +5,7 @@ class Interface
 
   include Validation
   #include Validate
+  NUMBER_FORMAT = /^\d{3}-?[а-яА-Я]{2}$/i
 
   def menu(spr_station,spr_route,spr_train,park_wagon)
 
@@ -152,31 +153,39 @@ class Interface
 
     when "train" # ---------------------------------- создать новый состав ---------------
       begin
-        print "Номер поезда (ЦЦЦ-Бб): "
+        print "Номер поезда (ЦЦЦ-Пс): "
         num_train = gets.chomp.to_s
-        raise "Номер не может быть пустым!" if num_train == ""
+        raise ArgumentError, "Номер не может быть пустым!" if num_train == ""
+        #raise ArgumentError, "Неверный формат номера поезда: #{num_train} !" if num_train !~ NUMBER_FORMAT 
 
         print "Тип поезда (1 - грузовой, 2 - пассажирский): "
         type = gets.chomp.to_i
-        raise "Тип поезда должен быть - 1 или 2!" unless [1,2].include? type
+        raise ArgumentError, "Тип поезда должен быть - 1 или 2!" unless [1,2].include? type
 
         print "Количество вагонов: "
         num_cars = gets.chomp.to_i
-        raise "Маловато вагонов будет!" if num_cars < 1
-    
+        raise ArgumentError, "Маловато вагонов будет!" if num_cars < 1
+
         train = CargoTrain.new(num_train,num_cars) if type == 1
         train = PassengerTrain.new(num_train,num_cars) if type == 2
-      
-        raise "Неудачная попытка создания объекта!" if train.obj_valid?
-
-      rescue StandardError => e
-        puts e.message
-        puts "train.errors " + train.errors.messages.to_s
+        #train = Train.new(num_train,"пасажирский",num_cars)
+        raise RuntimeError, "Неудачная попытка создания объекта!" unless train.obj_valid?
+      rescue  => e
+        if e.class == RuntimeError
+          puts "errors: " + train.errors.to_s
+        else
+          puts "#{e.class}: #{e.message}"
+        end
         print "Продолжить ввод (0 - нет, 1 - да): "
         retry if gets.chomp.to_i == 1
       else
-        puts "Поезд номер #{num_train} успешно создан!"
-        puts train
+        if train.obj_valid?
+          puts "Поезд номер #{num_train} успешно создан!"
+          puts train
+        else
+           puts "Неудачная попытка создания объекта!" 
+           puts "errors: " + train.errors.to_s
+        end
       end
 
     when "tr find" # -------------------------выбрать и установить активным поезд №  --------
@@ -212,9 +221,10 @@ class Interface
           print "Продолжить ввод (0 - нет, 1 - да): "
           retry if gets.chomp.to_i == 1
         else
-          train.add_car(next_car)                       
-          next_car.attach_wagon_to_train(train)
-          puts "Вагон номер #{num_wagon} успешно прицеплен к поезду № #{num_train}!"
+          if train.add_car(next_car)                       
+            next_car.attach_wagon_to_train(train)
+            puts "Вагон номер #{num_wagon} успешно прицеплен к поезду № #{num_train}!"
+          end
       end
 
     when "car-"   # ---------------------------------- - отцепить вагон от состава -------------

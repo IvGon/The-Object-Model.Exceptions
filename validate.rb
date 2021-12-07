@@ -22,7 +22,7 @@ module Validation
     #puts "valid_class.class "  + valid_class.class.to_s
     @validator = valid_class.new(self)                              # ------ Содать Obj-валидатор класса PassengerTrainValidator
     #puts  "@validator " + @validator.to_s                          
-    return @validator.valid? 
+    @validator.valid? 
   end
 
 # ------- ???????????????????????????????????????????????????? <- debug
@@ -34,8 +34,7 @@ module Validation
 # ------- ???????????????????????????????????????????????????? <- debug
 
   def errors
-    @validator.errors if defined?(@validator)
-    return {}
+    return @validator.errors.messages  if defined?(@validator)
   end
 end
 
@@ -68,7 +67,7 @@ module Validate
     def valid?                                                # возвращает true/false = есть/нет ошибки в eroors{}
       
       self.class.validators.each { |condition|  validate(condition) }
-      puts "@errors.messages " + @errors.messages.to_s unless @errors.messages.empty? 
+      @errors.messages.empty? 
     end
 
     private
@@ -117,7 +116,7 @@ module Validate
       #return if @object.send(name).is_a?(options[:type])    # ------- PassengerTrain.send(number).is_a?(Regexp)
       #                                                      # =>                           19   является Regexp   пассажирский  String 
       #raise unless @object.send(attribute).is_a?(condition[:type])
-      
+
       return if @object.send(attribute).is_a?(condition[:type])
     #rescue
       #puts "type_validator " + @errors.to_s 

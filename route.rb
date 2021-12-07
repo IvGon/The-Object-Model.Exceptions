@@ -10,9 +10,10 @@
 =end
 
 class Route
-
-  #require 'instance_counter'
+  
+  require_relative 'instance_counter'
   include InstanceCounter
+ 
 
   attr_reader :name
   attr_accessor :station
@@ -21,11 +22,13 @@ class Route
 
 # ------------------------------------- Создать маршрут ---------------------------------------------
 
-  def initialize(cod_route,begin_station, end_station)                      #------ Создать маршрут
-    @name = cod_route.to_s + ":" + begin_station + "-" + end_station  #------ Название маршрута
-    @station = [begin_station, end_station]        
-    register_instance           
-    @@list_routes.push(self)
+  def initialize(cod_route,begin_station,end_station)                     #------ Создать маршрут
+    if validate!(cod_route, begin_station,  end_station)
+      @name = cod_route.to_s + ":" + begin_station + "-" + end_station    #------ Название маршрута
+      @station = [begin_station, end_station]        
+      register_instance           
+      @@list_routes.push(self)
+    end
   end
   
 #------------------------------------ список Obj станций ------------------------------------------------
@@ -35,28 +38,19 @@ class Route
 
   # --------------------------------- добавить станцию в маршрут --------------------------------------
   def add_station(name_st, prev_st)		                       
-    if @station.include?(prev_st) == nil
-       puts "Нет такой станции #{prev_st} в списке!"
-    else  
-      index = @station.index(prev_st) +1
-      @station.insert(index, name_st) 
-    end
+    
+    raise "Нет такой станции #{prev_st} в списке! Для продолжения - 'exit'" unless station.include?(prev_st)
+    @station.insert(@station.index(prev_st) +1, name_st)
   end
 
   # -------------------------------- удалить станцию из списка ---------------------------------------------
 
   def del_station(name_st)			                             
-    if @station.include?(name_st) == nil
-       puts "Нет такой станции в списке!"
-    else   
-       index = @station.index(name_st).to_i
-       if (index == 0) || (index == @station.size-1)
-         puts "#{name_st} - это начало маршрута!" if (index == 0) 
-         puts "#{name_st} - это конец маршрута!" if (index == @station.size-1)
-       else
-         @station.delete(name_st)
-       end
-    end
+    
+    raise "Нет такой станции #{name_st} в списке! Для продолжения - 'exit'" unless station.include?(name_st)
+    raise "Попытка удалить начало маршрута!Для продолжения - 'exit'" if name_st == station.first
+    raise "Попытка удалить конечную станцию маршрута!!Для продолжения - 'exit'" if name_st == station.last
+    station.delete(name_st)
   end
   
   # -------------------------------- очистить маршрут ---------------------------------------------
@@ -71,10 +65,7 @@ class Route
   # ------------------------------- показать станции в маршруте -----------------------------------
 
   def show_stations				                                  
-    puts "***** Схема маршрута: ************"
-    print "<- "
-    @station.each { |name_st| print "#{name_st} - " }
-    puts ">"
+    @station.each { |name_st| print "#{name_st} " }
   end
 
   # ------------------------------- информация о маршруте ------------------------------------ 
@@ -89,4 +80,22 @@ class Route
     puts ">"
   end
 
+  def valid?
+    raise "Неудача!" unless validate!(@name,@station.first,@station.last)
+    true
+  rescue
+    false
+  end
+
+  protected
+
+  def validate!(*args)
+      raise "Неверный номер маршрута! To exit type 'exit'" if args[0].empty?
+      raise "Маршрут не может иметь меньше 2-х станций! To exit type 'exit'" if args[1].empty? || args[2].empty?
+    rescue Exception => e
+      puts "e.message " + e.message
+      false
+    else
+      true
+  end
 end

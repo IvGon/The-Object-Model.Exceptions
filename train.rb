@@ -19,9 +19,13 @@
 
 #********** Определение Класс Train (Поезд) ***********************************
 class Train
-  
-  #require 'manufacturer'
-  #require 'instance_counter'
+  require_relative 'manufacturer'
+  require_relative 'passenger_train'
+  require_relative 'cargo_train'
+  require_relative 'instance_counter'
+  require_relative 'validate'
+  include Validation
+  include Validate
   include Manufacturer
   include InstanceCounter
 
@@ -30,32 +34,47 @@ class Train
   attr_accessor :speed, :curent_station         # возвращать текущую станцию и скорость
   
   attr_reader :condition                        # местонахождение поезда: в пути/на станции
-  attr_reader :number_cars		                  # возвращать количество вагонов
+  attr_reader :number_cars, :num_of_cars		                  # возвращать количество вагонов
   attr_reader :wagons                           # подвижной состав поезда
 
 
   @@trains = []
 
+  NUMBER_FORMAT = /^\d{3}-?[а-яА-Я]{2}$/i
 #------------------------------------ список Obj поездов ------------------------------------------------
   def self.all
     @@trains 
   end
 
   def initialize(number, type, num_of_cars)
+      validate!(number)
 
-    @number = number			                      # номер поезда
-    @type = type				                        # тип поезда (грузовой, пассажирский)
-    @wagons = []                                # состав поезда
-    @num_of_cars = num_of_cars		              # количество вагонов 
-    @speed = 0
-    @curent_station = "Харьков"
-    @@trains.push(self)
-    register_instance
+      @number = number			                      # номер поезда
+      @type = type				                        # тип поезда (грузовой, пассажирский)
+      @wagons = []                                # состав поезда
+      @num_of_cars = num_of_cars	              # количество вагонов 
+      @speed = 0
+      @curent_station = "Харьков"
+      @@trains.push(self)
+      register_instance
   end
+
+  #def attr_validate(*args)
+
+    #validates :number, type: String 
+    #validates :number,
+    #        msg: 'is not a valid format.',
+    #        option: proc { |p| p.number =~ NUMBER_FORMAT }
+    #validates :type, type: String
+    #validates :type, 
+    #        msg: 'is not valid type',
+    #        option: proc { |p| ["пассажирский","грузовой"].include? p.type }
+  # obj_valid?("ini")
+  #end
 
   # --------------------------------------------- количество вагонов в поезде ----------------
   def number_cars                     			     
-    @num_of_cars = wagons.size
+    @wagons.size
   end
  
  # --------------------------------------------- поиск Obj поезда по номеру ----------------
@@ -72,8 +91,6 @@ class Train
     @next_station = assign_route.station[1]
     @condition   = @curent_station
     Station.all.find { |item| item.name == route.station[0]}.train_arrival(self)
-    #st_obj = Station.all.find { |item| item.name == route.station[0] }
-    #st_obj.train_arrival(self)
   end
   
   def route_name
@@ -204,4 +221,57 @@ class Train
       puts "нет такого вагона #{car.reg_number} в поезде!"   
     end
   end
+
+  def validate!(number)
+    raise RuntimeError, "Неверный формат номера поезда: #{number} !" if number !~ NUMBER_FORMAT    
+  end
 end
+
+class TrainValidator
+
+  include Validate
+
+  validates :number, type: String 
+  validates :number,
+            msg: 'Неверный формат номера!',
+            option: proc { |p| p.number =~ /^\d{3}-?[а-яА-Я]{2}$/i }
+  validates :type, type: String
+  validates :type, 
+            msg: 'Неверный тип поезда!',
+            option: proc { |p| ["пассажирский","грузовой"].include? p.type }
+  validates :num_of_cars, type: Integer
+  validates :num_of_cars,
+            msg: 'Количество вагонов не может быть меньше 1!',
+            option: proc { |p|  p.num_of_cars > 0 }
+  #validates :route_name, type: String
+  #validates :route, type: Route
+  #validates :speed, type: Fixnum
+  #validates :curent_station, type: String
+  #validates :condition, type: String
+  #validates :wagons, type: Wagon
+end
+
+class PassengerTrainValidator < TrainValidator
+  
+  validates :number, type: String 
+  validates :number,
+            msg: 'Неверный формат номера!',
+            option: proc { |p| p.number =~ /^\d{3}-?[а-яА-Я]{2}$/i }
+  validates :type, type: String
+  validates :type, 
+            msg: 'Неверный тип поезда!',
+            option: proc { |p| ["пассажирский","грузовой"].include? p.type }
+  validates :num_of_cars, type: Integer
+  validates :num_of_cars,
+            msg: 'Количество вагонов не может быть меньше 1!',
+            option: proc { |p|  p.num_of_cars > 0 }
+end
+
+class CargoTrainValidator < TrainValidator
+  def initialize
+    super
+  end
+end
+
+#tr=Train.new("123-Пс","пассажирский",12)
+#tr.obj_valid?

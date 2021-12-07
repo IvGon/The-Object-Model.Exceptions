@@ -1,8 +1,10 @@
 class Interface
-
 #def initialize(spr_station,spr_route,spr_train,park_wagon)
 
 #end
+
+  include Validation
+  #include Validate
 
   def menu(spr_station,spr_route,spr_train,park_wagon)
 
@@ -49,43 +51,63 @@ class Interface
 
     # -------------------------------------------------------------------------------------------------------------
     when "station+"      #--------------- создать новую станцию и внести в справочник станций
-      print "Название станци: "
-      name_st = gets.chomp.to_s
+      begin
+        print "Название станци: "
+        name_st = gets.chomp.to_s
+        st_obj = spr_station.find { |item| item.name == name_st} 
+        st_obj = Station.new(name_st) if st_obj.nil?
+        raise "Неудачная попытка создания станции!" unless st_obj.valid?
 
-      st_obj = spr_station.find { |item| item.name == name_st} 
-
-      if st_obj.nil?
-        st_obj = Station.new(name_st)
+      rescue StandardError => e
+        puts e.message
+        print "Продолжить ввод (0 - нет, 1 - да): "
+        retry if gets.chomp.to_i == 1
       else
-        puts "Уже есть такая станция  #{st_obj.name}  "
+        puts "Станция #{name_st} успешно создана!"
+        puts st_obj
       end
 
     when "station-"   # ---------------- создать новую станцию и внести в справочник станций
-      print "Название станци: "
-      name_st = gets.chomp.to_s
-
-      st_obj = spr_station.find { |item| item.name == name_st} 
-
-      if st_obj.nil?
-        puts "Нет такой станции   #{name_st}  "
-      else
+      begin
+        print "Название станци: "
+        name_st = gets.chomp.to_s
+        st_obj = spr_station.find { |item| item.name == name_st} 
+        puts st_obj
+        raise "Нет такой станции   #{name_st}!" if st_obj.nil?
         spr_station.delete(st_obj)
-      end  
-      
+      rescue StandardError => e
+        puts e.message
+        print "Продолжить ввод (0 - нет, 1 - да): "
+        retry if gets.chomp.to_i == 1
+      else
+        puts "Станция #{name_st} успешно удалена!"
+      end
+
     when "route+"  # -------------------------------  создать новый маршрут -------------
-                                    
-      print "Код маршрута: "
-      cod = gets.chomp.to_s
+      begin
+        print "Код маршрута: "
+        cod = gets.chomp.to_s
 
-      print "Начальная станци маршрута: "
-      beg_st = gets.chomp.to_s
-      st_obj = Station.new(beg_st) if spr_station.find { |item| item.name == beg_st}.nil?
+        print "Начальная станци маршрута: "
+        beg_st = gets.chomp.to_s
+        st_obj = Station.new(beg_st) if spr_station.find { |item| item.name == beg_st}.nil?
+        raise "Не удалось определить начальную станцию маршрута!" if st_obj.nil?
 
-      print "Конечная станци маршрута: "
-      end_st = gets.chomp.to_s
-      st_obj = Station.new(end_st) if spr_station.find { |item| item.name == end_st}.nil?
+        print "Конечная станци маршрута: "
+        end_st = gets.chomp.to_s
+        st_obj = Station.new(end_st) if spr_station.find { |item| item.name == end_st}.nil?
+        raise "Не удалось определить конечную станцию маршрута!" if st_obj.nil?
+        route = Route.new(cod,beg_st, end_st)
+        raise "Неудачная попытка создания маршрута!" unless route.valid?
 
-      route = Route.new(cod,beg_st, end_st)
+      rescue StandardError => e
+        puts e.message
+        print "Продолжить ввод (0 - нет, 1 - да): "
+        retry if gets.chomp.to_i == 1
+      else
+        puts "Маршрут № #{cod} от #{beg_st} до #{end_st} успешно создан!"
+        puts route
+      end
 
     # ----------------------------- добавить станцию в маршрут ------------------------
     
@@ -129,18 +151,33 @@ class Interface
     # -----------------------------
 
     when "train" # ---------------------------------- создать новый состав ---------------
+      begin
+        print "Номер поезда (ЦЦЦ-Бб): "
+        num_train = gets.chomp.to_s
+        raise "Номер не может быть пустым!" if num_train == ""
 
-      print "Номер поезда: "
-      num_train = gets.chomp.to_s
+        print "Тип поезда (1 - грузовой, 2 - пассажирский): "
+        type = gets.chomp.to_i
+        raise "Тип поезда должен быть - 1 или 2!" unless [1,2].include? type
 
-      print "Тип поезда (0 - грузовой, 1 - пассажирский): "
-      type = gets.chomp.to_i
+        print "Количество вагонов: "
+        num_cars = gets.chomp.to_i
+        raise "Маловато вагонов будет!" if num_cars < 1
+    
+        train = CargoTrain.new(num_train,num_cars) if type == 1
+        train = PassengerTrain.new(num_train,num_cars) if type == 2
+      
+        raise "Неудачная попытка создания объекта!" if train.obj_valid?
 
-      print "Количество вагонов: "
-      num_cars = gets.chomp.to_i
-
-      train = CargoTrain.new(num_train,num_cars) if type == 0 
-      train = PassengerTrain.new(num_train,num_cars) if type == 1
+      rescue StandardError => e
+        puts e.message
+        puts "train.errors " + train.errors.messages.to_s
+        print "Продолжить ввод (0 - нет, 1 - да): "
+        retry if gets.chomp.to_i == 1
+      else
+        puts "Поезд номер #{num_train} успешно создан!"
+        puts train
+      end
 
     when "tr find" # -------------------------выбрать и установить активным поезд №  --------
       print "Номер поезда: "
@@ -161,40 +198,52 @@ class Interface
       wagon = CargoWagon.new(num_wagon) if type == 0
     
     when "car+"         # ----------------------------- car+ - прицепить вагон к составу ------
+      begin 
+        raise "Не определен поезд!" if train.nil?
+        train.speed=0     
+        print "Номер вагона: "
+        num_wagon = gets.chomp.to_s
 
-      train.speed=0     
-      print "Номер вагона: "
-      num_wagon = gets.chomp.to_s
-
-      next_car = park_wagon.find { |item| item.reg_number == num_wagon} 
-      if next_car.nil?
-        puts "Нет такого вагона #{num_wagon}"
-      else  
-        train.add_car(next_car)                       
-        next_car.attach_wagon_to_train(train)
+        next_car = park_wagon.find { |item| item.reg_number == num_wagon} 
+        raise "Нет такого вагона #{num_wagon}!" if next_car.nil?
+      
+      rescue StandardError => e
+          puts e.message
+          print "Продолжить ввод (0 - нет, 1 - да): "
+          retry if gets.chomp.to_i == 1
+        else
+          train.add_car(next_car)                       
+          next_car.attach_wagon_to_train(train)
+          puts "Вагон номер #{num_wagon} успешно прицеплен к поезду № #{num_train}!"
       end
 
     when "car-"   # ---------------------------------- - отцепить вагон от состава -------------
+      begin 
+        raise "Не определен поезд!" if train.nil?
+        train.speed=0     
+        print "Отцепить от поезда вагон № : "
+        num_wagon = gets.chomp.to_s
 
-      print "Отцепить от поезда вагон № : "
-      num_wagon = gets.chomp.to_s
-      train.speed =0                          #остановите поезд
-
-      next_car = park_wagon.find { |item| item.reg_number == num_wagon} 
-    
-      if next_car.nil?
-        puts "Нет такого вагона #{num_wagon}" 
-      else
-        next_car.unhook_wagon_from_train(train)
-        train.del_car(next_car) 
+        next_car = park_wagon.find { |item| item.reg_number == num_wagon} 
+        raise "Нет такого вагона #{num_wagon}!" if next_car.nil?
+      
+      rescue StandardError => e
+          puts e.message
+          print "Продолжить ввод (0 - нет, 1 - да): "
+          retry if gets.chomp.to_i == 1
+        else
+          next_car.unhook_wagon_from_train(train)
+          train.del_car(next_car) 
+          puts "Вагон номер #{num_wagon} успешно отцеплен от поезда № #{num_train}!"
       end
     
     when "car num"  # --------------------------------- количество вагонов в поезде -------------
-      train.number_cars
+      train.number_cars unless train.nil?
       
     # -------------------------- Движение поезда по маршруту ---------------------    
     when "set route"   # -------------------------- route - назначить поезду маршрут --------
-      train.assign_train_route(route)
+      raise "Не определен поезд!" if train.nil?
+      train.assign_train_route(route) 
 
     when "tr stat"    # ----------------------------- текущая станция поезда на маршруте ----------------
       print "Номер поезда: "

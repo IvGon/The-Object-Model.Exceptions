@@ -9,10 +9,10 @@
     находящихся на станции).
 **********************************************************************
 =end
-#********** Определение Класс Station(Станция) ***********************************
-class Station
 
-  #require 'instance_counter'
+class Station
+  
+  require_relative 'instance_counter'
   include InstanceCounter
 
   @@stations = []
@@ -25,13 +25,50 @@ class Station
     @@stations
   end 
 
+# ----- Проблема: -------------------------------------------------------------------------------------------------
+#
+# При создании Object с проверкой аргументов в initialize(*аргументы):
+#      если аргументы не прошли проверку, создается не валидный Object. В результате накапливается мусор.
+#
+# Метод self.new_if_valid(*args) - попытка прервать создание не валидного Object, если аргументы не прошли проверку,
+
+  def self.new_if_valid(*args)
+    
+    @errors = InitializationInvalidError.new
+    raise "Неверные аргументы!" if self.validate(*args) == false
+    rescue 
+      @errors.add(args[0], "Неверные аргументы!") 
+      raise @errors.all.to_s
+      nil
+    else 
+        self.new(*args)
+  end
+
+  def self.validate(*args)
+      raise "Неверное название станции!" if args[0].empty?
+    rescue  
+      @errors.add(args[0], "Неверное название станции!") 
+      false
+    else
+      true
+  end
+# ----- Проблема: ---------------------------------------------------------------------------------------
+
 # --------------------------------- # Cоздать станцию ----------------------------------------------------
   def initialize(name_station)                                    
-    @name = name_station
-    @trains = []
-    @@stations.push(self)
-    register_instance
+      @name = name_station
+      @trains = []
+      @@stations.push(self)
+      register_instance
   end
+
+# -------------------------------------------------------------------------------------------------------
+
+  def errors
+    return {} unless defined?(self)
+    @errors
+  end
+# -------------------------------------------------------------------------------------------------------
   
 # --------------------------------- прибытие поезда на станцию -------------------------------------------
   def train_arrival(train)   
@@ -71,4 +108,47 @@ class Station
   def list_of_trains_by_type(type)
     trains.select{ |train| train.type == type }.size
   end
+
+# ----------------------------------------------------------------------------------------------------------
+
+  def valid?
+    raise "Неудача!" unless validate!(self)
+    true
+  rescue
+    false
+  end
+
+  protected
+
+    def validate!(object) 
+      raise "Не определен attr_reader :name" unless object.methods.include? :name               # => true
+      raise "Не определен instance_variables!" if object.instance_variables.size <2             #[:@name, :@trains]
+      raise "Не определено название станции!" if object.instance_variable_get(:@name).size <2 
+    rescue Exception => e
+      puts "e.message " + e.message  
+      false
+    else
+      true
+    end
 end
+
+class InitializationInvalidError < StandardError
+
+  attr_accessor :all
+
+  def initialize
+    @all = {}
+  end
+
+  def add(name, msg)
+    (@all[name] ||= []) << msg
+  end
+
+  def full_messages
+    @all.map do |e|
+      "#{e.first.capitalize} #{e.last.join(' & ')}. "
+    end.join
+  end
+end
+
+#station = Station.new("Харьков") 

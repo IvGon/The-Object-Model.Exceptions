@@ -15,14 +15,16 @@
 =end
 
 class Wagon
-  #require 'manufacturer'
-  #require 'instance_counter'
+  
+  require_relative 'manufacturer'
+  require_relative 'instance_counter'
   include Manufacturer
   include InstanceCounter
 
   attr_accessor :location                 #----- местоположение вагона: новый, на станции, в поезде
   attr_reader :reg_number, :type_wagon    #----- номер и тип вагона
 
+  NUMBER_WAGON_FORMAT = /^\d{8}$/i
   @@list_wagons = []
 
 #------------------------------------ список Obj вагонов ----------------------------------------
@@ -32,11 +34,13 @@ class Wagon
 
 #-------------------------------------------------------------------------------------------------
   def initialize(reg_number,type_wagon)
-    @reg_number=reg_number
-    @type_wagon=type_wagon
-    @location = "NEW"
-    @@list_wagons.push(self)
-    register_instance
+    if validate!(reg_number,type_wagon)
+      @reg_number=reg_number
+      @type_wagon=type_wagon
+      @location = "NEW"
+      @@list_wagons.push(self)
+      register_instance
+    end
   end
 
   # ------------------ Прицепить к поезду ---------------------------------------------------------
@@ -55,6 +59,12 @@ class Wagon
     assign_type_wagon!(type_wagon) if type_wagon.nil?
   end
 
+  def valid?
+    validate!(@reg_number, @type_wagon)
+  rescue
+    false
+  end
+
   private
 
     attr_writer :type_wagon
@@ -68,4 +78,15 @@ class Wagon
       self.type_wagon = initial_type
     end
 
+    def validate!(*args)
+      raise "Не задан номер вагона!" if args[0].nil?
+      raise "Длина номера должна быть 8 цифр" if args[0].to_s.length != 8
+      raise "Не верный формат номера!" if args[0] !~ NUMBER_WAGON_FORMAT
+      raise "Не верный тип вагона!" unless ["пассажирский", "грузовой"].include?(args[1])
+      rescue Exception => e
+        puts "e.message " + e.message
+        false
+      else
+        true
+    end
 end

@@ -56,7 +56,7 @@ class Interface
         print "Название станци: "
         name_st = gets.chomp.to_s
         st_obj = spr_station.find { |item| item.name == name_st} 
-        st_obj = Station.new(name_st) if st_obj.nil?
+        st_obj = Station.new_if_valid(name_st) if st_obj.nil?
         raise "Неудачная попытка создания станции!" unless st_obj.valid?
 
       rescue StandardError => e
@@ -91,12 +91,12 @@ class Interface
 
         print "Начальная станци маршрута: "
         beg_st = gets.chomp.to_s
-        st_obj = Station.new(beg_st) if spr_station.find { |item| item.name == beg_st}.nil?
+        st_obj = Station.new_if_valid(beg_st) if spr_station.find { |item| item.name == beg_st}.nil?
         raise "Не удалось определить начальную станцию маршрута!" if st_obj.nil?
 
         print "Конечная станци маршрута: "
         end_st = gets.chomp.to_s
-        st_obj = Station.new(end_st) if spr_station.find { |item| item.name == end_st}.nil?
+        st_obj = Station.new_if_valid(end_st) if spr_station.find { |item| item.name == end_st}.nil?
         raise "Не удалось определить конечную станцию маршрута!" if st_obj.nil?
         route = Route.new(cod,beg_st, end_st)
         raise "Неудачная попытка создания маршрута!" unless route.valid?

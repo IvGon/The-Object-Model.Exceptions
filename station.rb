@@ -45,9 +45,9 @@ class Station
   end
 
   def self.validate(*args)
-      raise "Неверное название станции!" if args[0].empty?
+      raise "Неверное название станции!" if ( args[0].empty? || args[0].length < 1 )
     rescue  
-      @errors.add(args[0], "Неверное название станции!") 
+      @errors.add(args[0], "Неверное название станции - #{args[0]}!") 
       false
     else
       true
@@ -123,7 +123,8 @@ class Station
     def validate!(object) 
       raise "Не определен attr_reader :name" unless object.methods.include? :name               # => true
       raise "Не определен instance_variables!" if object.instance_variables.size <2             #[:@name, :@trains]
-      raise "Не определено название станции!" if object.instance_variable_get(:@name).size <2 
+      raise "Не определено название станции!" if object.instance_variable_get(:@name).size == 0 
+      raise "Название станции менее 1 символа!" if object.instance_variable_get(:@name).size < 1 
     rescue Exception => e
       puts "e.message " + e.message  
       false
